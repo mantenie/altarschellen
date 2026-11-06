@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Altarschellen</title>
+<meta name="theme-color" content="#1F1A16">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Schellen">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E2DD; --ink:#2B2622; --muted:#6E665C; --brass:#9C7A2B; --brass-hi:#E8C566; --brass-dark:#5E4612; --red:#8E1B1B; --track:#CFCBC3;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1F1A16; --ink:#EDE6DA; --muted:#A39887; --brass:#C9A24A; --brass-hi:#FFE08A; --brass-dark:#7A5C1C; --red:#B23A2E; --track:#3A322B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1F1A16; --ink:#EDE6DA; --muted:#A39887; --brass:#C9A24A; --brass-hi:#FFE08A; --brass-dark:#7A5C1C; --red:#B23A2E; --track:#3A322B;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+main{width:100%;max-width:30rem;flex:1;display:flex;flex-direction:column;padding:1.5rem 1.25rem 1.25rem;min-height:0}
+h1{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:600;font-size:2.6rem;line-height:1;margin:0 0 .4rem;letter-spacing:.01em}
+.lede{margin:0;color:var(--muted);font-size:1rem;line-height:1.45;max-width:26rem}
+.stage{flex:1;min-height:16rem;display:flex;align-items:center;justify-content:center;touch-action:none;position:relative}
+.bells{width:min(78vw,19rem);height:auto;transform-origin:50% 92%;transition:transform 60ms linear;overflow:visible}
+.bell .body{fill:var(--brass);stroke:var(--brass-dark);stroke-width:1.5;transition:fill 260ms ease-out}
+.bell .shine{fill:var(--brass-hi);opacity:.35;transition:opacity 260ms ease-out}
+.bell .clapper{fill:var(--brass-dark)}
+.bell.hit .body{fill:var(--brass-hi);transition:none}
+.bell.hit .shine{opacity:.9;transition:none}
+.handle{fill:var(--brass-dark)}
+.hub{fill:var(--brass)}
+.lamp{fill:var(--red)}
+.controls{display:flex;flex-direction:column;gap:1rem}
+button{
+  font:inherit;font-size:1.1rem;font-weight:600;border:0;border-radius:999px;
+  padding:1rem 1.5rem;background:var(--ink);color:var(--bg);cursor:pointer;width:100%;
+}
+button:focus-visible,input:focus-visible{outline:3px solid var(--brass);outline-offset:3px}
+.meter{height:6px;border-radius:3px;background:var(--track);overflow:hidden}
+.meter span{display:block;height:100%;width:0;background:var(--brass);transition:width 80ms linear}
+label{display:flex;flex-direction:column;gap:.5rem;font-size:.95rem;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--brass)}
+.hint{margin:0;font-size:.9rem;line-height:1.45;color:var(--muted);min-height:1.3em}
+.hint.warn{color:var(--red)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.bells{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Altarschellen</h1>
+  <p class="lede">Schüttle das Handy. Die Schellen klingen so kräftig und so lange, wie du schüttelst.</p>
+
+  <div class="stage" id="stage" aria-label="Schellen. Zum Testen ohne Bewegungssensor hin und her wischen.">
+    <svg class="bells" id="bells" viewBox="-120 -150 240 300" aria-hidden="true">
+      <rect class="handle" x="-7" y="10" width="14" height="135" rx="7"/>
+      <rect class="handle" x="-95" y="-12" width="190" height="10" rx="5"/>
+      <rect class="handle" x="-5" y="-110" width="10" height="110" rx="5"/>
+      <circle class="hub" cx="0" cy="-7" r="16"/>
+      <circle class="lamp" cx="0" cy="-7" r="5"/>
+      <g class="bell" data-i="0" transform="translate(-82 2)"><circle class="clapper" cx="0" cy="34" r="6"/><path class="body" d="M-26 28 C-26 -4 -17 -18 0 -18 C17 -18 26 -4 26 28 L31 34 L-31 34 Z"/><path class="shine" d="M-14 24 C-14 4 -10 -6 -4 -10 C-8 -2 -9 10 -8 24 Z"/></g>
+      <g class="bell" data-i="1" transform="translate(-36 -86) scale(.85)"><circle class="clapper" cx="0" cy="34" r="6"/><path class="body" d="M-26 28 C-26 -4 -17 -18 0 -18 C17 -18 26 -4 26 28 L31 34 L-31 34 Z"/><path class="shine" d="M-14 24 C-14 4 -10 -6 -4 -10 C-8 -2 -9 10 -8 24 Z"/></g>
+      <g class="bell" data-i="2" transform="translate(36 -86) scale(.85)"><circle class="clapper" cx="0" cy="34" r="6"/><path class="body" d="M-26 28 C-26 -4 -17 -18 0 -18 C17 -18 26 -4 26 28 L31 34 L-31 34 Z"/><path class="shine" d="M-14 24 C-14 4 -10 -6 -4 -10 C-8 -2 -9 10 -8 24 Z"/></g>
+      <g class="bell" data-i="3" transform="translate(82 2)"><circle class="clapper" cx="0" cy="34" r="6"/><path class="body" d="M-26 28 C-26 -4 -17 -18 0 -18 C17 -18 26 -4 26 28 L31 34 L-31 34 Z"/><path class="shine" d="M-14 24 C-14 4 -10 -6 -4 -10 C-8 -2 -9 10 -8 24 Z"/></g>
+      <rect class="handle" x="-74" y="-60" width="148" height="8" rx="4"/>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <button id="start">Schellen aktivieren</button>
+    <button id="perm" hidden>Bewegung freigeben</button>
+    <div id="live" hidden>
+      <div class="meter" aria-hidden="true"><span id="level"></span></div>
+    </div>
+    <label id="sensLabel" hidden>Empfindlichkeit
+      <input type="range" id="sens" min="0" max="100" value="55" aria-label="Empfindlichkeit">
+    </label>
+    <p class="hint" id="hint" role="status"></p>
+    <p class="hint" id="diag" hidden></p>
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const startBtn = $('start'), hint = $('hint'), levelEl = $('level'), bellsSvg = $('bells'), stage = $('stage');
+  const bellEls = [...document.querySelectorAll('.bell')];
+
+  /* ---------- Audio ---------- */
+  let ctx, bus, noiseBuf;
+  const active = [];
+  const MAX_VOICES = 28;
+  // Vier Glocken, hoch gestimmt wie typische Altarschellen
+  const BELLS = [
+    { f: 1975, pan: -0.55, size: 1.0 },
+    { f: 2217, pan: -0.2, size: 0.9 },
+    { f: 2489, pan: 0.2, size: 0.85 },
+    { f: 2793, pan: 0.55, size: 0.8 }
+  ];
+  // [Frequenzverhältnis, Amplitude, Abklingfaktor] – unharmonische Teiltöne kleiner Glocken
+  const PARTIALS = [
+    [1.0, 1.0, 1.0],
+    [1.0021, 0.55, 0.95],
+    [2.32, 0.42, 0.6],
+    [2.327, 0.2, 0.55],
+    [4.25, 0.28, 0.35],
+    [6.63, 0.18, 0.22],
+    [9.38, 0.1, 0.14]
+  ];
+
+  function makeIR(sec) {
+    const sr = ctx.sampleRate, len = Math.floor(sr * sec);
+    const buf = ctx.createBuffer(2, len, sr);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        const fadeIn = Math.min(1, i / (sr * 0.015));
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.4) * fadeIn;
+      }
+    }
+    return buf;
+  }
+
+  function initAudio() {
+    ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 8; comp.ratio.value = 4;
+    comp.attack.value = 0.002; comp.release.value = 0.2;
+    const master = ctx.createGain(); master.gain.value = 0.95;
+    const conv = ctx.createConvolver(); conv.buffer = makeIR(3.2);
+    const wet = ctx.createGain(); wet.gain.value = 0.3;
+    bus = ctx.createGain();
+    bus.connect(comp); bus.connect(conv); conv.connect(wet); wet.connect(comp);
+    comp.connect(master); master.connect(ctx.destination);
+    noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate);
+    const nd = noiseBuf.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  }
+
+  function stealVoices() {
+    while (active.length > MAX_VOICES) {
+      const v = active.shift();
+      try { v.gain.gain.cancelScheduledValues(ctx.currentTime); v.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.02); } catch (e) {}
+    }
+  }
+
+  function strikeBell(i, vel, t) {
+    const b = BELLS[i];
+    const out = ctx.createGain();
+    out.gain.value = 0.05 + 0.24 * Math.pow(vel, 1.3);
+    let node = out;
+    if (ctx.createStereoPanner) {
+      const p = ctx.createStereoPanner(); p.pan.value = b.pan; out.connect(p); node = p;
+    }
+    node.connect(bus);
+    const nyq = ctx.sampleRate * 0.45;
+    const baseDecay = 2.4 * b.size;
+    let longest = 0;
+    PARTIALS.forEach(([ratio, amp, dk], idx) => {
+      const f = b.f * ratio * (1 + (Math.random() - 0.5) * 0.0015);
+      if (f > nyq) return;
+      // Härterer Anschlag regt die hohen Teiltöne stärker an
+      const bright = idx < 2 ? 1 : Math.pow(0.2 + 0.8 * vel, 0.5 + idx * 0.35);
+      const a = amp * bright;
+      const decay = baseDecay * dk * (0.85 + Math.random() * 0.3);
+      longest = Math.max(longest, decay);
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(a, t + 0.0015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+      o.connect(g); g.connect(out);
+      o.start(t); o.stop(t + decay + 0.05);
+    });
+    // Klöppelklick
+    const n = ctx.createBufferSource(); n.buffer = noiseBuf;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5200 + vel * 2500; bp.Q.value = 1.2;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.35 * vel, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+    n.connect(bp); bp.connect(ng); ng.connect(out);
+    n.start(t); n.stop(t + 0.05);
+
+    const voice = { gain: out };
+    active.push(voice);
+    setTimeout(() => { const k = active.indexOf(voice); if (k >= 0) active.splice(k, 1); try { node.disconnect(); } catch (e) {} },
+      (t - ctx.currentTime + longest + 0.2) * 1000);
+    stealVoices();
+    flash(i, t);
+  }
+
+  function strike(vel) {
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const count = 2 + (vel > 0.4 ? 1 : 0) + (vel > 0.72 ? 1 : 0);
+    const order = [0, 1, 2, 3].sort(() => Math.random() - 0.5).slice(0, count);
+    order.forEach((i, k) => {
+      const t = now + 0.002 + k * 0.004 + Math.random() * 0.01;
+      strikeBell(i, Math.min(1, vel * (0.7 + Math.random() * 0.35)), t);
+    });
+    // Nachprellen der Klöppel
+    if (vel > 0.3 && Math.random() < 0.5) {
+      const i = Math.floor(Math.random() * 4);
+      strikeBell(i, vel * 0.22, now + 0.03 + Math.random() * 0.035);
+    }
+  }
+
+  function flash(i, t) {
+    const delay = Math.max(0, (t - ctx.currentTime) * 1000);
+    setTimeout(() => {
+      const el = bellEls[i];
+      el.classList.add('hit');
+      setTimeout(() => el.classList.remove('hit'), 90);
+    }, delay);
+  }
+
+  /* ---------- Schüttelerkennung ---------- */
+  let thr = 6;
+  function setSens(v) { thr = 14 - (v / 100) * 11.5; } // 14 … 2.5 m/s²
+  setSens(+$('sens').value);
+  $('sens').addEventListener('input', e => setSens(+e.target.value));
+
+  const det = { dir: null, peak: 0, struck: false, last: 0 };
+  const grav = [0, 0, 0]; let gravInit = false;
+  let level = 0, tilt = 0;
+
+  function fire(peak, now) {
+    det.struck = true; det.last = now;
+    const v = Math.max(0, Math.min(1, (peak - thr) / 22));
+    strike(0.08 + 0.92 * v);
+  }
+
+  function feed(ax, ay, az, now) {
+    const m = Math.hypot(ax, ay, az);
+    level = level * 0.8 + Math.min(1, m / (thr + 22)) * 0.2;
+    tilt = tilt * 0.75 + ax * 0.25;
+
+    if (m < thr * 0.35) {
+      if (det.dir && !det.struck && det.peak > thr && now - det.last > 40) fire(det.peak, now);
+      det.dir = null; return;
+    }
+    const u = [ax / m, ay / m, az / m];
+    if (!det.dir) {
+      if (m > thr) { det.dir = u; det.peak = m; det.struck = false; }
+      return;
+    }
+    const dot = u[0] * det.dir[0] + u[1] * det.dir[1] + u[2] * det.dir[2];
+    if (dot < -0.2) {
+      if (!det.struck && det.peak > thr && now - det.last > 40) fire(det.peak, now);
+      det.dir = u; det.peak = m; det.struck = false; return;
+    }
+    if (m > det.peak) det.peak = m;
+    else if (!det.struck && det.peak > thr && m < det.peak * 0.75 && now - det.last > 40) fire(det.peak, now);
+  }
+
+  let gotMotion = false;
+  function onMotion(e) {
+    const now = performance.now();
+    let a = e.acceleration;
+    let ax, ay, az;
+    if (a && a.x != null) { ax = a.x; ay = a.y; az = a.z; }
+    else {
+      const g = e.accelerationIncludingGravity;
+      if (!g || g.x == null) return;
+      if (!gravInit) { grav[0] = g.x; grav[1] = g.y; grav[2] = g.z; gravInit = true; }
+      grav[0] = grav[0] * 0.92 + g.x * 0.08; grav[1] = grav[1] * 0.92 + g.y * 0.08; grav[2] = grav[2] * 0.92 + g.z * 0.08;
+      ax = g.x - grav[0]; ay = g.y - grav[1]; az = g.z - grav[2];
+    }
+    gotMotion = true; evCount++;
+    feed(ax, ay, az, now);
+  }
+
+  /* ---------- Zeiger als Testersatz ---------- */
+  let ptr = null;
+  stage.addEventListener('pointerdown', e => { ptr = { x: e.clientX, y: e.clientY, t: e.timeStamp, vx: 0, vy: 0 }; stage.setPointerCapture(e.pointerId); });
+  stage.addEventListener('pointermove', e => {
+    if (!ptr || !ctx) return;
+    const dt = Math.max(4, e.timeStamp - ptr.t);
+    const vx = (e.clientX - ptr.x) / dt, vy = (e.clientY - ptr.y) / dt;
+    const ax = (vx - ptr.vx) / dt * 420, ay = (vy - ptr.vy) / dt * 420;
+    ptr = { x: e.clientX, y: e.clientY, t: e.timeStamp, vx, vy };
+    feed(ax, ay, 0, performance.now());
+  });
+  const endPtr = () => { ptr = null; };
+  stage.addEventListener('pointerup', endPtr);
+  stage.addEventListener('pointercancel', endPtr);
+
+  /* ---------- Anzeige ---------- */
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function render() {
+    levelEl.style.width = (level * 100).toFixed(1) + '%';
+    level *= 0.97;
+    tilt *= 0.9;
+    if (!reduce) bellsSvg.style.transform = `rotate(${Math.max(-16, Math.min(16, tilt * 1.4)).toFixed(2)}deg)`;
+    requestAnimationFrame(render);
+  }
+
+  /* ---------- Stummschalter umgehen (iOS) ----------
+     Eine stumme, endlos laufende <audio>-Schleife versetzt iOS in den
+     Wiedergabemodus. Web Audio klingt dann auch bei aktivem Stummschalter. */
+  let keepAlive;
+  function silentWavUrl() {
+    const sr = 8000, n = sr; // 1 s Stille
+    const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    w(36, 'data'); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  function startKeepAlive() {
+    if (!keepAlive) {
+      keepAlive = document.createElement('audio');
+      keepAlive.src = silentWavUrl();
+      keepAlive.loop = true;
+      keepAlive.setAttribute('playsinline', '');
+      keepAlive.setAttribute('x-webkit-airplay', 'deny');
+    }
+    keepAlive.play().catch(() => {});
+  }
+
+  /* ---------- Start ---------- */
+  /* ---------- Bewegungsfreigabe ----------
+     iOS verlangt, dass requestPermission() direkt im Tap aufgerufen wird,
+     ohne vorheriges await. Sonst wird die Anfrage still abgelehnt. */
+  const permBtn = $('perm'), diag = $('diag');
+  let motionOn = false, evCount = 0, permState = 'nicht nötig';
+
+  function askMotion() {
+    if (typeof DeviceMotionEvent === 'undefined') { permState = 'kein Sensor-API'; return Promise.resolve(false); }
+    if (typeof DeviceMotionEvent.requestPermission !== 'function') { permState = 'nicht nötig'; return Promise.resolve(true); }
+    return DeviceMotionEvent.requestPermission()
+      .then(r => { permState = r; return r === 'granted'; })
+      .catch(err => { permState = 'Fehler: ' + (err && err.name || err); return false; });
+  }
+
+  function enableMotion() {
+    if (motionOn) return;
+    motionOn = true;
+    window.addEventListener('devicemotion', onMotion);
+  }
+
+  function afterPermission(allowed) {
+    if (allowed) {
+      enableMotion();
+      permBtn.hidden = true;
+      hint.classList.remove('warn');
+      hint.textContent = 'Bereit. Schütteln.';
+      setTimeout(() => {
+        if (!gotMotion) {
+          hint.textContent = 'Freigabe erteilt, aber der Sensor liefert keine Daten. Bitte App einmal ganz schließen und neu öffnen.';
+          hint.classList.add('warn');
+        } else hint.textContent = '';
+      }, 1500);
+    } else {
+      permBtn.hidden = false;
+      hint.textContent = 'Bewegungssensor nicht freigegeben. Tippe auf „Bewegung freigeben“.';
+      hint.classList.add('warn');
+    }
+  }
+
+  startBtn.addEventListener('click', () => {
+    // 1. Sofort und synchron im Tap: Freigabe anfragen und Audio entsperren
+    const perm = askMotion();
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    startKeepAlive();
+    initAudio();
+    ctx.resume().catch(() => {});
+    try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+
+    startBtn.hidden = true;
+    $('live').hidden = false;
+    $('sensLabel').hidden = false;
+    requestAnimationFrame(render);
+    perm.then(afterPermission);
+  });
+
+  permBtn.addEventListener('click', () => { askMotion().then(afterPermission); });
+
+  // Diagnosezeile: Antippen der Überschrift blendet sie ein und aus
+  document.querySelector('h1').addEventListener('click', () => { diag.hidden = !diag.hidden; });
+  setInterval(() => {
+    if (diag.hidden) return;
+    diag.textContent = `Freigabe: ${permState} · Ereignisse: ${evCount} · Schwelle: ${thr.toFixed(1)} m/s² · Pegel: ${(level * 100).toFixed(0)} %`;
+  }, 250);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ctx) {
+      if (keepAlive) keepAlive.play().catch(() => {});
+      if (ctx.state !== 'running') ctx.resume();
+      try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+  });
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && !location.hostname.endsWith('claude.ai')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
