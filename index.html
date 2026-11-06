@@ -66,6 +66,11 @@ input[type=range]{width:100%;accent-color:var(--brass)}
 .hint{margin:0;font-size:.9rem;line-height:1.45;color:var(--muted);min-height:1.3em}
 .hint.warn{color:var(--red)}
 [hidden]{display:none!important}
+.install{border:1px solid var(--track);border-radius:14px;padding:.85rem 1rem;display:flex;gap:.75rem;align-items:flex-start;font-size:.92rem;line-height:1.45}
+.install p{margin:0;flex:1}
+.install svg{width:1.05em;height:1.05em;vertical-align:-.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.install .close{background:none;color:var(--muted);width:auto;padding:.1rem .35rem;font-size:1.2rem;line-height:1;font-weight:400}
+.install .add{width:auto;padding:.55rem 1rem;font-size:.95rem;margin-top:.6rem}
 @media (prefers-reduced-motion:reduce){.bells{transition:none}}
 </style>
 </head>
@@ -100,6 +105,14 @@ input[type=range]{width:100%;accent-color:var(--brass)}
     </label>
     <p class="hint" id="hint" role="status"></p>
     <p class="hint" id="diag" hidden></p>
+    <div class="install" id="installIos" hidden>
+      <p>Als App nutzen: Tippe in Safari auf <svg viewBox="0 0 24 24" aria-label="Teilen"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M6 12H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg> Teilen (bei neuerem Safari über „…“) und dann auf „Zum Home-Bildschirm“.</p>
+      <button class="close" data-close aria-label="Hinweis schließen">×</button>
+    </div>
+    <div class="install" id="installAndroid" hidden>
+      <p>Als App auf dem Startbildschirm nutzen, auch offline.<br><button class="add" id="installBtn">App installieren</button></p>
+      <button class="close" data-close aria-label="Hinweis schließen">×</button>
+    </div>
   </div>
 </main>
 
@@ -415,6 +428,30 @@ input[type=range]{width:100%;accent-color:var(--brass)}
       try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen'); } catch (e) {}
     }
   });
+  /* ---------- Installationshinweis ---------- */
+  (() => {
+    const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+    let dismissed = false;
+    try { dismissed = localStorage.getItem('installHintClosed') === '1'; } catch (e) {}
+    if (standalone || dismissed) return;
+    const ua = navigator.userAgent;
+    const isIos = /iPhone|iPad|iPod/.test(ua) || (ua.includes('Macintosh') && navigator.maxTouchPoints > 1);
+    const close = el => { el.hidden = true; try { localStorage.setItem('installHintClosed', '1'); } catch (e) {} };
+    document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => close(b.parentElement)));
+    if (isIos) { $('installIos').hidden = false; return; }
+    let deferred = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault(); deferred = e; $('installAndroid').hidden = false;
+    });
+    $('installBtn').addEventListener('click', async () => {
+      if (!deferred) return;
+      deferred.prompt();
+      try { await deferred.userChoice; } catch (e) {}
+      deferred = null; $('installAndroid').hidden = true;
+    });
+    window.addEventListener('appinstalled', () => { $('installAndroid').hidden = true; });
+  })();
+
   if ('serviceWorker' in navigator && location.protocol === 'https:' && !location.hostname.endsWith('claude.ai')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
